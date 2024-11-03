@@ -1,4 +1,4 @@
-public class CalculatorTest {
+public class ResizeableArrayStackTest {
     public static void main(String[] args) {
         // Define variable values for a, b, c, d, and e
         int a = 2; // Given values
