@@ -9,14 +9,12 @@ public final class LinkedStack<T> implements StackInterface<T> {
     } // end default constructor
 
     // Pushes a new entry onto the top of this stack.
-    @Override
     public void push(T newEntry) {
         Node<T> newNode = new Node<>(newEntry, topNode);
         topNode = newNode;
     }
 
     // Removes and returns the top entry of this stack.
-    @Override
     public T pop() {
         if (isEmpty()) {
             throw new EmptyStackException();
@@ -27,7 +25,6 @@ public final class LinkedStack<T> implements StackInterface<T> {
     }
 
     // Retrieves the top entry of this stack.
-    @Override
     public T peek() {
         if (isEmpty()) {
             throw new EmptyStackException();
@@ -36,13 +33,11 @@ public final class LinkedStack<T> implements StackInterface<T> {
     }
 
     // Detects whether this stack is empty.
-    @Override
     public boolean isEmpty() {
         return topNode == null;
     }
 
     // Clears this stack.
-    @Override
     public void clear() {
         topNode = null;
     }
