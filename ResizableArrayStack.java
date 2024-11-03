@@ -1,12 +1,12 @@
 import java.util.EmptyStackException;
 
 public final class ResizableArrayStack<T> implements StackInterface<T> {
-    private T[] stack;    // Array of stack entries
-    private int topIndex; // Index of top entry
+    private T[] stack;
+    private int topIndex;
     private boolean integrityOK = false;
     private static final int DEFAULT_CAPACITY = 50;
     private static final int MAX_CAPACITY = 10000;
-  
+
     public ResizableArrayStack() {
         this(DEFAULT_CAPACITY);
     }
@@ -14,7 +14,6 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
     public ResizableArrayStack(int initialCapacity) {
         integrityOK = false;
         checkCapacity(initialCapacity);
-        
         @SuppressWarnings("unchecked")
         T[] tempStack = (T[]) new Object[initialCapacity];
         stack = tempStack;
@@ -22,28 +21,23 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
         integrityOK = true;
     }
 
-    // Adds a new entry to the top of the stack.
     public void push(T newEntry) {
         checkIntegrity();
-        if (topIndex >= stack.length - 1) {
-            doubleCapacity();
-        }
+        ensureCapacity();
         stack[++topIndex] = newEntry;
     }
 
-    // Removes and returns the top entry of the stack.
     public T pop() {
         checkIntegrity();
         if (isEmpty()) {
             throw new EmptyStackException();
         } else {
             T top = stack[topIndex];
-            stack[topIndex--] = null; // Avoid memory leak
+            stack[topIndex--] = null;
             return top;
         }
     }
 
-    // Retrieves the top entry of the stack.
     public T peek() {
         checkIntegrity();
         if (isEmpty()) {
@@ -53,12 +47,10 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
         }
     }
 
-    // Checks if the stack is empty.
     public boolean isEmpty() {
         return topIndex < 0;
     }
 
-    // Clears the stack.
     public void clear() {
         checkIntegrity();
         while (topIndex > -1) {
@@ -66,19 +58,17 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
         }
     }
 
-    private void doubleCapacity() {
-        int newLength = 2 * stack.length;
-        checkCapacity(newLength);
-
-        @SuppressWarnings("unchecked")
-        T[] newStack = (T[]) new Object[newLength];
-        System.arraycopy(stack, 0, newStack, 0, stack.length);
-        stack = newStack;
+    private void ensureCapacity() {
+        if (topIndex >= stack.length - 1) { // If array is full, double its size
+            int newLength = 2 * stack.length;
+            checkCapacity(newLength);
+            stack = java.util.Arrays.copyOf(stack, newLength);
+        }
     }
 
     private void checkCapacity(int capacity) {
         if (capacity > MAX_CAPACITY) {
-            throw new IllegalStateException("Attempt to create a stack whose capacity exceeds the allowed maximum of " + MAX_CAPACITY);
+            throw new IllegalStateException("Attempt to create a stack whose capacity exceeds allowed maximum.");
         }
     }
 
@@ -88,49 +78,56 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
         }
     }
 
-    // Method to evaluate a postfix expression
-    public static int evaluatePostfix(String postfix) {
+    // Method to evaluate a postfix expression with detailed step-by-step output
+    public static int evaluatePostfix(String expression) {
         ResizableArrayStack<Integer> valueStack = new ResizableArrayStack<>();
-        
-        for (int i = 0; i < postfix.length(); i++) {
-            char nextCharacter = postfix.charAt(i);
 
-            // Skip whitespace
-            if (Character.isWhitespace(nextCharacter)) {
-                continue;
-            }
+        System.out.printf("%-20s %-20s %-20s%n", "Next character scanned", "Current stack", "Evaluation area");
+        System.out.println("---------------------------------------------------------------");
 
-            if (Character.isDigit(nextCharacter)) {
-                // Convert character to integer and push to stack
-                valueStack.push(Character.getNumericValue(nextCharacter));
-            } else {
-                // Assume it's an operator (+, -, *, /, ^)
+        for (char ch : expression.toCharArray()) {
+            if (Character.isDigit(ch)) {
+                // Push operand onto the stack
+                int operand = Character.getNumericValue(ch);
+                valueStack.push(operand);
+                System.out.printf("%-20s %-20s %-20s%n", ch, valueStack, "Push " + operand);
+            } else if (isOperator(ch)) {
+                // Pop two operands and apply operator
                 int operandTwo = valueStack.pop();
                 int operandOne = valueStack.pop();
-                int result = 0;
-
-                switch (nextCharacter) {
-                    case '+':
-                        result = operandOne + operandTwo;
-                        break;
-                    case '-':
-                        result = operandOne - operandTwo;
-                        break;
-                    case '*':
-                        result = operandOne * operandTwo;
-                        break;
-                    case '/':
-                        result = operandOne / operandTwo;
-                        break;
-                    case '^':
-                        result = (int) Math.pow(operandOne, operandTwo);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unexpected character: " + nextCharacter);
-                }
+                int result = applyOperator(operandOne, operandTwo, ch);
                 valueStack.push(result);
+                System.out.printf("%-20s %-20s %-20s%n", ch, valueStack, operandOne + " " + ch + " " + operandTwo + " = " + result);
             }
         }
-        return valueStack.peek(); // The result of the postfix expression
+        // Final result at the top of the stack
+        return valueStack.peek();
+    }
+
+    private static boolean isOperator(char ch) {
+        return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^';
+    }
+
+    private static int applyOperator(int operandOne, int operandTwo, char operator) {
+        return switch (operator) {
+            case '+' -> operandOne + operandTwo;
+            case '-' -> operandOne - operandTwo;
+            case '*' -> operandOne * operandTwo;
+            case '/' -> operandOne / operandTwo;
+            case '^' -> (int) Math.pow(operandOne, operandTwo);
+            default -> 0;
+        };
+    }
+
+    // Helper method for stack toString to show current elements
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i <= topIndex; i++) {
+            sb.append(stack[i]);
+            if (i < topIndex) sb.append(", ");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }
