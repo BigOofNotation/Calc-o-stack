@@ -58,6 +58,16 @@ public final class ResizableArrayStack<T> implements StackInterface<T> {
         }
     }
 
+    public int size(){
+        int count = 0; 
+        for(int i = 0; i < stack.length; i++){
+            if(stack[i] != null){
+                count++;
+            }
+        }
+        return count;
+    }
+
     private void ensureCapacity() {
         if (topIndex >= stack.length - 1) { // If array is full, double its size
             int newLength = 2 * stack.length;
